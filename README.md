@@ -15,7 +15,7 @@ on:
       - main
 
 jobs:
-  terraform:
+  Terraform:
     name: Terraform
     runs-on: ubuntu-22.04
     permissions:
@@ -41,3 +41,7 @@ like this:
 ```
 terraform 1.4.2
 ```
+
+## Inputs
+`path` (optional): This is the path where the terraform configuration lives
+`terraform-token` (optional): This is the token to communicate with terraform cloud if you are using it
