@@ -2,6 +2,9 @@
 Github action that validates and plans terraform and provides
 a nice output.
 
+If you are looking for `terraform apply` check out:
+https://github.com/sontek/applyh-terraform
+
 
 ## Usage
 To use it you can define an action that runs on pull requests:
