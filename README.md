@@ -5,6 +5,8 @@ a nice output.
 If you are looking for `terraform apply` check out:
 https://github.com/sontek/applyh-terraform
 
+Screemshot:
+<img src="tf-example.png" />
 
 ## Usage
 To use it you can define an action that runs on pull requests:
