@@ -17,6 +17,7 @@ runs:
     # https://developer.hashicorp.com/terraform/tutorials/automation/github-actions#review-actions-workflow
 
     - uses: wistia/parse-tool-versions@v1.0
+      continue-on-error: true
 
     - uses: hashicorp/setup-terraform@v2
       with:

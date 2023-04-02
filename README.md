@@ -33,3 +33,11 @@ jobs:
 ```
 
 You can also a `matrix` and iterate over multiple paths if necessary.
+
+By default it'll use the `latest` terraform version available but you can create a
+`.tool-versions` file in the root of the repository and define a different version
+like this:
+
+```
+terraform 1.4.2
+```
