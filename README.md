@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: ./.github/actions/test-terraform
+      - uses: sontek/plan-terraform@v1
         with:
           path: "."
           terraform-token: ${{ secrets.TFE_TOKEN }}
