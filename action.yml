@@ -1,0 +1,112 @@
+name: Test Terraform
+description: Test terraform tasks
+
+inputs:
+  terraform-token:
+    description: Token that allows execution of terraform runs
+    required: true
+  path:
+    description: Path to terraform folder
+    required: true
+
+runs:
+  using: composite
+
+  steps:
+    # mostly copied from
+    # https://developer.hashicorp.com/terraform/tutorials/automation/github-actions#review-actions-workflow
+
+    - uses: wistia/parse-tool-versions@v1.0
+
+    - uses: hashicorp/setup-terraform@v2
+      with:
+        cli_config_credentials_token: ${{ inputs.terraform-token }}
+        terraform_version: ${{ env.TERRAFORM_TOOL_VERSION }}
+
+    - working-directory: ${{ inputs.path }}
+      shell: sh
+      run: terraform fmt -check
+      id: fmt
+      continue-on-error: true
+
+    - working-directory: ${{ inputs.path }}
+      shell: sh
+      run: terraform init
+      id: init
+      continue-on-error: true
+
+    - working-directory: ${{ inputs.path }}
+      shell: sh
+      run: terraform validate -no-color
+      id: validate
+      continue-on-error: true
+
+    - working-directory: ${{ inputs.path }}
+      shell: sh
+      run: terraform plan -refresh-only 2>&1 > /dev/null && terraform plan -refresh=false -input=false -no-color
+      id: plan
+      continue-on-error: true
+
+    - name: Reformat Plan
+      if: steps.plan.outcome == 'success'
+      shell: sh
+      run: |
+        echo '${{ steps.plan.outputs.stdout || steps.plan.outputs.stderr }}' \
+        | sed '0,/^Initializing plugins and modules...$/d' \
+        | sed -E 's/^([[:space:]]+)([-+])/\2\1/g' > plan.txt
+
+    - name: Put Plan in Env Var
+      if: steps.plan.outcome == 'success'
+      shell: sh
+      run: |
+        PLAN=$(cat plan.txt)
+        echo "PLAN<<EOF" >> $GITHUB_ENV
+        echo "$PLAN" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
+
+    - name: Update Pull Request
+      if: steps.plan.outcome == 'success'
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        header: "Terraform: ${{ inputs.path }}"
+        message: |
+          # Terraform: ${{ inputs.path }}
+          #### `${{ steps.fmt.outcome == 'success' && '✅' || '❌' }}` Format
+          #### `${{ steps.init.outcome == 'success' && '✅' || '❌' }}` Init
+          #### `${{ steps.validate.outcome == 'success' && '✅' || '❌' }}` Validation
+          #### `${{ steps.plan.outcome == 'success' && '✅' || '❌' }}` Plan
+
+          <details><summary>Show Plan</summary>
+
+          ```diff
+          ${{ env.PLAN }}
+          ```
+
+          </details>
+
+          *Pushed by: @${{ github.actor }}, Action: `${{ github.event_name }}`*
+
+    - name: Post Plan Failure
+      if: steps.plan.outcome == 'failure'
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        header: "Terraform: ${{ inputs.path }}"
+        message: |
+          # Terraform: ${{ inputs.path }}
+          #### `${{ steps.fmt.outcome == 'success' && '✅' || '❌' }}` Format
+          #### `${{ steps.init.outcome == 'success' && '✅' || '❌' }}` Init
+          #### `${{ steps.validate.outcome == 'success' && '✅' || '❌' }}` Validation
+          #### `${{ steps.plan.outcome == 'success' && '✅' || '❌' }}` Plan
+
+          <details><summary>Show Plan</summary>
+
+          ```
+          ${{ steps.plan.outputs.stderr }}
+          ```
+
+          </details>
+
+    - name: Exit if failure
+      shell: sh
+      if: steps.fmt.outcome == 'failure' || steps.init.outcome == 'failure' || steps.plan.outcome == 'failure' || steps.validate.outcome == 'failure'
+      run: exit 1
