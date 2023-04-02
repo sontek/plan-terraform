@@ -5,9 +5,6 @@ a nice output.
 If you are looking for `terraform apply` check out:
 https://github.com/sontek/applyh-terraform
 
-Screemshot:
-<img src="tf-example.png" />
-
 ## Usage
 To use it you can define an action that runs on pull requests:
 
@@ -50,3 +47,6 @@ terraform 1.4.2
 ## Inputs
 `path` (optional): This is the path where the terraform configuration lives
 `terraform-token` (optional): This is the token to communicate with terraform cloud if you are using it
+
+# Screenshot
+<img src="tf-example.png" />
